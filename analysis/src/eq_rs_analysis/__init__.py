@@ -1,0 +1,1 @@
+"""Analysis of the Audio EQ Cookbook filters."""
