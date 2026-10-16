@@ -2,10 +2,10 @@
 
 Analog prototype (Q = 1/√2 → 2nd-order Butterworth):
 
-    H(s) = Ωc² / (s² + (Ωc/Q)·s + Ωc²)
+    H(s) = ωc² / (s² + (ωc/Q)·s + ωc²)
 
 The cookbook discretizes it with the bilinear transform s = 2fs·(1 - z⁻¹)/(1 + z⁻¹),
-with Ωc prewarped so the cutoff lands exactly on f0.
+with ωc prewarped so the cutoff lands exactly on f0.
 
 Usage:
     uv run lpf                       # f0 = 1 kHz, Q = 0.707, fs = 48 kHz
@@ -29,7 +29,7 @@ def digital(f0: float, q: float, fs: float = FS, gain_db: float = 0.0):
 
 
 def analog(f0: float, q: float, fs: float = FS, gain_db: float = 0.0):
-    """Analog prototype with prewarped Ωc. Returns (num, den, Ωc)."""
+    """Analog prototype with prewarped ωc. Returns (num, den, ωc)."""
     wc = prewarp(f0, fs)
     return np.array([wc**2]), np.array([1.0, wc / q, wc**2]), wc
 

@@ -17,7 +17,7 @@ from .rbj import FS
 
 # (f0, q, fs, gain_db) -> (b, a)
 DigitalFn = Callable[[float, float, float, float], tuple[np.ndarray, np.ndarray]]
-# (f0, q, fs, gain_db) -> (num, den, Ωc)
+# (f0, q, fs, gain_db) -> (num, den, ωc)
 AnalogFn = Callable[[float, float, float, float], tuple[np.ndarray, np.ndarray, float]]
 
 
@@ -55,7 +55,7 @@ def run(flt: Filter) -> None:
 
     gain_txt = f"  gain = {gain:g} dB" if flt.has_gain else ""
     print(f"{flt.name}  f0 = {args.f0:g} Hz  Q = {args.q:.4f}  fs = {args.fs:g} Hz{gain_txt}")
-    print(f"  Ωc (prewarped) = {wc:.3f} rad/s  →  {wc / (2 * np.pi):.3f} Hz")
+    print(f"  ωc (prewarped) = {wc:.3f} rad/s  →  {wc / (2 * np.pi):.3f} Hz")
     print(f"  b = {b}")
     print(f"  a = {a}")
     print(f"  z poles = {np.roots(a)}  |p| = {np.abs(np.roots(a))}")

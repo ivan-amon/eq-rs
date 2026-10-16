@@ -4,6 +4,7 @@ Conventions:
 - Analog:  num, den are polynomials in s (descending powers), as in scipy.signal.freqs.
 - Digital: b, a are coefficients in z⁻¹ (b0 + b1 z⁻¹ + ...), as in scipy.signal.freqz.
 - The system is assumed causal, so the ROC is Re{s} > max Re{p} in s and |z| > max |p| in z.
+- Frequency notation: ω is the analog frequency (rad/s), Ω the digital one (rad/sample).
 """
 
 import numpy as np
@@ -68,12 +69,12 @@ def s_plane(num, den, wc, title):
     # ROC (causal system): Re{s} > max Re{p}
     sigma_roc = p.real.max() / wc
     ax.axvspan(sigma_roc, lim, color="tab:green", alpha=0.12,
-               label=f"ROC: Re{{s}} > {sigma_roc:.3f}·Ωc")
+               label=f"ROC: Re{{s}} > {sigma_roc:.3f}·ωc")
     ax.axvline(sigma_roc, color="tab:green", ls=":", lw=1.2)
 
     ax.axhline(0, color="k", lw=0.8)
-    ax.axvline(0, color="k", lw=1.6, label="jΩ axis (Fourier)")
-    ax.add_patch(Circle((0, 0), 1, fill=False, ls="--", color="gray", lw=0.8))  # |s| = Ωc
+    ax.axvline(0, color="k", lw=1.6, label="jω axis (Fourier)")
+    ax.add_patch(Circle((0, 0), 1, fill=False, ls="--", color="gray", lw=0.8))  # |s| = ωc
 
     _plot_roots(ax, p, wc, "x", "crimson", "poles")
     _plot_roots(ax, z, wc, "o", "royalblue", "zeros")
@@ -85,33 +86,33 @@ def s_plane(num, den, wc, title):
     ax.set_xlim(-lim, lim)
     ax.set_ylim(-lim, lim)
     ax.set_aspect("equal")
-    ax.set_xlabel("σ / Ωc")
-    ax.set_ylabel("Ω / Ωc")
+    ax.set_xlabel("σ / ωc")
+    ax.set_ylabel("ω / ωc")
     ax.set_title(f"{title} — s-plane")
     ax.legend(loc="upper right", fontsize=8)
     return fig
 
 
-# ------------------------------------------------- 2. Analog Fourier H(jΩ)
+# ------------------------------------------------- 2. Analog Fourier H(jω)
 
 def fourier_analog(num, den, wc, fs, title):
-    # Same span as the digital plot: Ω ∈ [−π·fs, π·fs] ↔ ω ∈ [−π, π] (ω = Ω·Ts)
-    W = np.pi * fs
-    om = np.linspace(-W, W, 8193)
-    _, h = signal.freqs(num, den, worN=om)
+    # Same span as the digital plot: ω ∈ [−π·fs, π·fs] ↔ Ω ∈ [−π, π] (Ω = ω·Ts)
+    w_max = np.pi * fs
+    w = np.linspace(-w_max, w_max, 8193)
+    _, h = signal.freqs(num, den, worN=w)
     mag = np.abs(h)
     _, hc = signal.freqs(num, den, worN=[wc])
     mc = np.abs(hc[0])
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(om, mag)
-    ax.axvline(wc, color="crimson", ls="--", lw=1, label=f"±Ωc = ±{wc:.1f} rad/s")
+    ax.plot(w, mag)
+    ax.axvline(wc, color="crimson", ls="--", lw=1, label=f"±ωc = ±{wc:.1f} rad/s")
     ax.axvline(-wc, color="crimson", ls="--", lw=1)
     ax.scatter([-wc, wc], [mc, mc], color="crimson", zorder=5)
-    ax.annotate(f"|H(jΩc)| = {mc:.3f}", (wc, mc), xytext=(10, 6), textcoords="offset points",
+    ax.annotate(f"|H(jωc)| = {mc:.3f}", (wc, mc), xytext=(10, 6), textcoords="offset points",
                 color="crimson")
 
-    ax.set_xlim(-W, W)
+    ax.set_xlim(-w_max, w_max)
     ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _p: f"{x / 1000:g}k" if x else "0"))
     ax.grid(True, alpha=0.3)
 
@@ -120,9 +121,9 @@ def fourier_analog(num, den, wc, fs, title):
     sec.xaxis.set_major_formatter(FuncFormatter(_hz_label))
 
     ax.set_ylim(0, max(1.0, mag.max()) * 1.1)
-    ax.set_xlabel("Ω (rad/s)")
-    ax.set_ylabel("|H(jΩ)|")
-    ax.set_title(f"{title} — |H(jΩ)| (analog prototype)")
+    ax.set_xlabel("ω (rad/s)")
+    ax.set_ylabel("|H(jω)|")
+    ax.set_title(f"{title} — |H(jω)| (analog prototype)")
     ax.legend(loc="upper right")
     fig.tight_layout()
     return fig
@@ -160,7 +161,7 @@ def z_plane(b, a, title):
     return fig
 
 
-# ------------------------------------------- 4. Digital frequency response H(e^jω)
+# ------------------------------------------- 4. Digital frequency response H(e^jΩ)
 
 def _pi_label(x, _pos=None):
     n = round(x / (np.pi / 4))  # multiples of π/4
@@ -174,19 +175,19 @@ def _pi_label(x, _pos=None):
 
 
 def freq_digital(b, a, fs, f0, title):
-    w = np.linspace(-np.pi, np.pi, 8193)
-    _, h = signal.freqz(b, a, worN=w)
+    Om = np.linspace(-np.pi, np.pi, 8193)
+    _, h = signal.freqz(b, a, worN=Om)
     mag = np.abs(h)
-    w0 = 2 * np.pi * f0 / fs
-    _, h0 = signal.freqz(b, a, worN=[w0])
+    Om0 = 2 * np.pi * f0 / fs
+    _, h0 = signal.freqz(b, a, worN=[Om0])
     m0 = np.abs(h0[0])
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(w, mag)
-    ax.axvline(w0, color="crimson", ls="--", lw=1, label=f"±ω0 = ±{w0 / np.pi:.4f}·π")
-    ax.axvline(-w0, color="crimson", ls="--", lw=1)
-    ax.scatter([-w0, w0], [m0, m0], color="crimson", zorder=5)
-    ax.annotate(f"|H(e^jω0)| = {m0:.3f}", (w0, m0), xytext=(10, 6), textcoords="offset points",
+    ax.plot(Om, mag)
+    ax.axvline(Om0, color="crimson", ls="--", lw=1, label=f"±Ω0 = ±{Om0 / np.pi:.4f}·π")
+    ax.axvline(-Om0, color="crimson", ls="--", lw=1)
+    ax.scatter([-Om0, Om0], [m0, m0], color="crimson", zorder=5)
+    ax.annotate(f"|H(e^jΩ0)| = {m0:.3f}", (Om0, m0), xytext=(10, 6), textcoords="offset points",
                 color="crimson")
 
     ax.set_xlim(-np.pi, np.pi)
@@ -200,9 +201,9 @@ def freq_digital(b, a, fs, f0, title):
     sec.xaxis.set_major_formatter(FuncFormatter(_hz_label))
 
     ax.set_ylim(0, max(1.0, mag.max()) * 1.1)
-    ax.set_xlabel("ω (rad/sample)")
-    ax.set_ylabel("|H(e^jω)|")
-    ax.set_title(f"{title} — |H(e^jω)|")
+    ax.set_xlabel("Ω (rad/sample)")
+    ax.set_ylabel("|H(e^jΩ)|")
+    ax.set_title(f"{title} — |H(e^jΩ)|")
     ax.legend(loc="upper right")
     fig.tight_layout()
     return fig

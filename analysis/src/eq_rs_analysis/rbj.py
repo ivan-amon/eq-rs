@@ -9,7 +9,7 @@ FS = 48_000.0
 
 @dataclass(frozen=True)
 class RbjParams:
-    w0: float  # Ωo digital center / cutoff frequency (rad/sample)
+    w0: float  # Ω0: digital center / cutoff frequency (rad/sample), named w0 as in the cookbook
     cos_w0: float
     sin_w0: float
     alpha: float  # sin(w0) / (2Q)
@@ -17,7 +17,7 @@ class RbjParams:
 
 
 def rbj_params(f0: float, q: float, fs: float = FS, gain_db: float = 0.0) -> RbjParams:
-    w0 = 2 * np.pi * f0 / fs # Ωo (rad)
+    w0 = 2 * np.pi * f0 / fs  # Ω0 (rad/sample)
     return RbjParams(
         w0=w0,
         cos_w0=np.cos(w0),
@@ -28,7 +28,7 @@ def rbj_params(f0: float, q: float, fs: float = FS, gain_db: float = 0.0) -> Rbj
 
 
 def prewarp(f0: float, fs: float = FS) -> float:
-    """Analog Ωc (rad/s) that the bilinear transform s = 2fs·(1 - z⁻¹)/(1 + z⁻¹) maps exactly onto f0."""
+    """Analog ωc (rad/s) that the bilinear transform s = 2fs·(1 - z⁻¹)/(1 + z⁻¹) maps exactly onto f0."""
     return 2 * fs * np.tan(np.pi * f0 / fs)
 
 
