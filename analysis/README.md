@@ -20,7 +20,7 @@ Nothing here is used by the Rust code at runtime. It is only for reading and che
 > | $\omega$ | analog (continuous-time) angular frequency, as in $H(j\omega)$ | rad/s |
 > | $\omega_c$ | cutoff of the analog prototype (after prewarping) | rad/s |
 > | $\Omega$ | digital (discrete-time) angular frequency, as in $H(e^{j\Omega})$ | rad/sample |
-> | $\Omega_0 = 2\pi f_0 / f_s$ | digital cutoff / center frequency | rad/sample |
+> | $\Omega_0 = \omega_0 T_s$ | digital cutoff / center frequency, with $\omega_0 = 2\pi f_0$ and $T_s = 1/f_s$ | rad/sample |
 > | $f_s$ | sample rate | Hz |
 >
 > The RBJ Cookbook calls the digital frequency `w0`. The code keeps the name `w0` so it can be
@@ -81,11 +81,11 @@ The same steps apply to every filter:
 2. **Prewarping.** The bilinear transform compresses the frequency axis, so the analog cutoff
    is chosen to land exactly on $f_0$ after the transform:
 
-   $$\omega_c = 2 f_s \tan\left(\frac{\Omega_0}{2}\right) = 2 f_s \tan\left(\frac{\pi f_0}{f_s}\right)$$
+   $$\omega_c = \frac{2}{T_s} \tan\left(\frac{\Omega_0}{2}\right) = \frac{2}{T_s} \tan\left(\frac{\omega_0 T_s}{2}\right)$$
 
 3. **Bilinear transform.** Substitute
 
-   $$s = 2 f_s \frac{1 - z^{-1}}{1 + z^{-1}}$$
+   $$s = \frac{2}{T_s} \cdot \frac{1 - z^{-1}}{1 + z^{-1}}$$
 
    This maps the left half of the s-plane into the unit circle, so a stable analog filter
    gives a stable digital filter.
@@ -133,5 +133,6 @@ src/eq_rs_analysis/
 
 ## References
 
+- [`docs/biquads.md`](../docs/biquads.md): the formulas of every filter, in this repo's notation.
 - R. Bristow-Johnson, [*Audio EQ Cookbook*](https://www.w3.org/TR/audio-eq-cookbook/).
 - [`scipy.signal`](https://docs.scipy.org/doc/scipy/reference/signal.html): `bilinear`, `freqs`, `freqz`, `tf2zpk`.
