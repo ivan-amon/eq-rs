@@ -38,7 +38,12 @@ def run(flt: Filter) -> None:
     if flt.has_gain:
         ap.add_argument("--gain", type=float, default=6.0, help="gain (dB)")
     ap.add_argument("--save", type=Path, help="directory to save PNGs into instead of showing windows")
+    views = ap.add_argument_group("views", "pick which plots to show (combinable; default: all)")
+    views.add_argument("-a", "--analog", action="store_true", help="s-plane and analog frequency response")
+    views.add_argument("-d", "--digital", action="store_true", help="z-plane and digital frequency response")
+    views.add_argument("--daw", action="store_true", help="DAW-style view")
     args = ap.parse_args()
+    show_all = not (args.analog or args.digital or args.daw)
     gain = args.gain if flt.has_gain else 0.0
 
     b, a = flt.digital(args.f0, args.q, args.fs, gain)
@@ -55,13 +60,15 @@ def run(flt: Filter) -> None:
     print(f"  a = {a}")
     print(f"  z poles = {np.roots(a)}  |p| = {np.abs(np.roots(a))}")
 
-    figs = {
-        "1_s_plane": plots.s_plane(num, den, wc, flt.name),
-        "2_analog_fourier": plots.fourier_analog(num, den, wc, args.fs, flt.name),
-        "3_z_plane": plots.z_plane(b, a, flt.name),
-        "4_digital_freq": plots.freq_digital(b, a, args.fs, args.f0, flt.name),
-        "5_daw": plots.daw_view(b, a, args.fs, args.f0, args.q, flt.label),
+    # lazy: each figure is only created if its view was selected
+    builders = {
+        "1_s_plane": (args.analog, lambda: plots.s_plane(num, den, wc, flt.name)),
+        "2_analog_fourier": (args.analog, lambda: plots.fourier_analog(num, den, wc, args.fs, flt.name)),
+        "3_z_plane": (args.digital, lambda: plots.z_plane(b, a, flt.name)),
+        "4_digital_freq": (args.digital, lambda: plots.freq_digital(b, a, args.fs, args.f0, flt.name)),
+        "5_daw": (args.daw, lambda: plots.daw_view(b, a, args.fs, args.f0, args.q, flt.label)),
     }
+    figs = {key: build() for key, (selected, build) in builders.items() if show_all or selected}
 
     if args.save:
         args.save.mkdir(parents=True, exist_ok=True)

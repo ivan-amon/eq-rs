@@ -9,7 +9,7 @@ FS = 48_000.0
 
 @dataclass(frozen=True)
 class RbjParams:
-    w0: float  # digital center / cutoff frequency (rad/sample)
+    w0: float  # Ωo digital center / cutoff frequency (rad/sample)
     cos_w0: float
     sin_w0: float
     alpha: float  # sin(w0) / (2Q)
@@ -17,7 +17,7 @@ class RbjParams:
 
 
 def rbj_params(f0: float, q: float, fs: float = FS, gain_db: float = 0.0) -> RbjParams:
-    w0 = 2 * np.pi * f0 / fs
+    w0 = 2 * np.pi * f0 / fs # Ωo (rad)
     return RbjParams(
         w0=w0,
         cos_w0=np.cos(w0),
