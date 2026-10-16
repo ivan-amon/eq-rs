@@ -44,6 +44,14 @@ def run(flt: Filter) -> None:
     views.add_argument("--daw", action="store_true", help="DAW-style view")
     args = ap.parse_args()
     show_all = not (args.analog or args.digital or args.daw)
+
+    # Stability: α = sin(Ω0)/(2Q) > 0 ⇔ poles inside the unit circle (Re{s} < 0 for the prototype)
+    if args.fs <= 0:
+        ap.error(f"--fs must be > 0 (got {args.fs:g})")
+    if args.q <= 0:
+        ap.error(f"--q must be > 0 (got {args.q:g}); Q ≤ 0 makes the filter unstable")
+    if not 0 < args.f0 < args.fs / 2:
+        ap.error(f"--f0 must be in (0, fs/2) = (0, {args.fs / 2:g}) Hz (got {args.f0:g})")
     gain = args.gain if flt.has_gain else 0.0
 
     b, a = flt.digital(args.f0, args.q, args.fs, gain)
